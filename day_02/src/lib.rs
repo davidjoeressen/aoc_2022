@@ -40,7 +40,7 @@ fn parse_line(s: &str) -> Result<(Hand, Hand), &'static str> {
     let hands: Vec<Hand> = s
         .split_whitespace()
         .take(2)
-        .map(|x| str::parse::<Hand>(x))
+        .map(str::parse::<Hand>)
         .collect::<Result<Vec<Hand>, &str>>()?;
     if let [oponent, player] = hands.as_slice() {
         Ok((*oponent, *player))
@@ -84,15 +84,15 @@ pub fn parse_file(s: String) -> Vec<(Hand, Hand)> {
     s.lines().filter_map(|l| parse_line(l).ok()).collect()
 }
 
-pub fn part1(game: &Vec<(Hand, Hand)>) -> i64 {
+pub fn part1(game: &[(Hand, Hand)]) -> i64 {
     game.iter()
-        .map(|(oponent, player)| calc_score(&oponent, &player))
+        .map(|(oponent, player)| calc_score(oponent, player))
         .sum()
 }
 
-pub fn part2(game: &Vec<(Hand, Hand)>) -> i64 {
+pub fn part2(game: &[(Hand, Hand)]) -> i64 {
     game.iter()
-        .map(|(oponent, player)| calc_p2_score(&oponent, &player))
+        .map(|(oponent, player)| calc_p2_score(oponent, player))
         .sum()
 }
 

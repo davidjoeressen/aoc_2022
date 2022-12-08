@@ -7,7 +7,7 @@ fn main() {
 fn run(content: String) -> io::Result<()> {
     let lines: Vec<&str> = content.lines().collect();
     let elves: Vec<i32> = lines
-        .rsplit(|x| x.len() == 0)
+        .rsplit(|x| x.is_empty())
         .map(|x| x.iter().filter_map(|y| y.parse::<i32>().ok()).sum())
         .collect();
 
@@ -18,10 +18,10 @@ fn run(content: String) -> io::Result<()> {
     for x in elves {
         let mut smallest_index = 0;
         let mut smallest_value = part2[0];
-        for n in 1..part2.len() {
-            if part2[n] < smallest_value {
+        for (n, item) in part2.iter().enumerate().skip(1) {
+            if *item < smallest_value {
                 smallest_index = n;
-                smallest_value = part2[n];
+                smallest_value = *item;
             }
         }
         if smallest_value < x {

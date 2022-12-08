@@ -1,16 +1,13 @@
-pub fn part1(s: &String) -> i64 {
-    s.lines()
-        .map(|l| find_overlap(l))
-        .map(|c| priority(c))
-        .sum()
+pub fn part1(s: &str) -> i64 {
+    s.lines().map(find_overlap).map(priority).sum()
 }
 
-pub fn part2(s: &String) -> i64 {
+pub fn part2(s: &str) -> i64 {
     let lines: Vec<&str> = s.lines().collect();
     lines
         .chunks(3)
         .map(|l| find_p2_overlap(l[0], l[1], l[2]))
-        .map(|c| priority(c))
+        .map(priority)
         .sum()
 }
 
@@ -19,7 +16,7 @@ fn find_p2_overlap(x: &str, y: &str, z: &str) -> char {
     let y: Vec<char> = y.chars().collect();
     let z: Vec<char> = z.chars().collect();
 
-    *find_overlaps(find_overlaps(x, y), z).iter().nth(0).unwrap()
+    *find_overlaps(find_overlaps(x, y), z).first().unwrap()
 }
 
 fn find_overlap(s: &str) -> char {
@@ -27,13 +24,12 @@ fn find_overlap(s: &str) -> char {
     let mid = chars.len() / 2;
     let (front, back) = chars.split_at(mid);
     *find_overlaps(front.to_vec(), back.to_vec())
-        .iter()
-        .nth(0)
+        .first()
         .unwrap()
 }
 
 fn find_overlaps<T: PartialEq + Copy>(x: Vec<T>, y: Vec<T>) -> Vec<T> {
-    x.iter().filter(|a| y.contains(a)).map(|x| *x).collect()
+    x.iter().filter(|a| y.contains(a)).copied().collect()
 }
 
 fn priority(c: char) -> i64 {

@@ -3,17 +3,17 @@ use std::str;
 type Range = (i32, i32);
 
 pub fn parse_file(file: String) -> Vec<(Range, Range)> {
-    file.lines().map(|l| parse_line(l)).collect()
+    file.lines().map(parse_line).collect()
 }
 
-pub fn part1(ranges: &Vec<(Range, Range)>) -> usize {
+pub fn part1(ranges: &[(Range, Range)]) -> usize {
     ranges
         .iter()
         .filter(|(x, y)| contains_fully(x, y) || contains_fully(y, x))
         .count()
 }
 
-pub fn part2(ranges: &Vec<(Range, Range)>) -> usize {
+pub fn part2(ranges: &[(Range, Range)]) -> usize {
     ranges.iter().filter(|(x, y)| overlaps(x, y)).count()
 }
 
