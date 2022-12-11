@@ -9,7 +9,7 @@ fn search_start(s: &str, marker_size: usize) -> usize {
             return n + 1;
         }
     }
-    return 0;
+    0
 }
 
 pub fn part1(s: &str) -> usize {
