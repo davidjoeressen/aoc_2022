@@ -80,7 +80,7 @@ fn calc_p2_score(oponent: &Hand, player: &Hand) -> i64 {
     }
 }
 
-pub fn parse_file(s: String) -> Vec<(Hand, Hand)> {
+pub fn parse_file(s: &str) -> Vec<(Hand, Hand)> {
     s.lines().filter_map(|l| parse_line(l).ok()).collect()
 }
 
@@ -136,11 +136,9 @@ mod tests {
 
     #[test]
     fn can_run_game() {
-        let file = String::from(
-            "A Y\n\
+        let file = "A Y\n\
             B X\n\
-            C Z\n",
-        );
+            C Z\n";
         let game = parse_file(file);
         assert_eq!(part1(&game), 15);
         assert_eq!(part2(&game), 12);

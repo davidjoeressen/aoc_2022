@@ -2,7 +2,7 @@ use std::str;
 
 type Range = (i32, i32);
 
-pub fn parse_file(file: String) -> Vec<(Range, Range)> {
+pub fn parse_file(file: &str) -> Vec<(Range, Range)> {
     file.lines().map(parse_line).collect()
 }
 
@@ -64,7 +64,7 @@ mod tests {
             ((6, 6), (4, 6)),
             ((2, 6), (4, 8)),
         ];
-        assert_eq!(parse_file(String::from(have)), want);
+        assert_eq!(parse_file(have), want);
     }
 
     #[test]

@@ -1,10 +1,8 @@
-use std::io;
-
 fn main() {
     util::execute(run)
 }
 
-fn run(content: String) -> io::Result<()> {
+fn run(content: &str) {
     let lines: Vec<&str> = content.lines().collect();
     let elves: Vec<i32> = lines
         .rsplit(|x| x.is_empty())
@@ -29,6 +27,4 @@ fn run(content: String) -> io::Result<()> {
         }
     }
     println!("Part 2: {}", part2.iter().sum::<i32>());
-
-    Ok(())
 }
