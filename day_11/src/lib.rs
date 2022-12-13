@@ -1,10 +1,28 @@
 use std::collections::{HashMap, VecDeque};
+use std::str::FromStr;
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Operation {
     Plus(i64),
     Times(i64),
     Square,
+}
+
+impl FromStr for Operation {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let pieces: Vec<&str> = s.split_whitespace().skip(1).collect();
+        if pieces[1] == "old" {
+            return Ok(Operation::Square);
+        }
+        let amount = pieces[1].parse().or(Err("Parse Error"))?;
+        match pieces[0] {
+            "*" => Ok(Operation::Times(amount)),
+            "+" => Ok(Operation::Plus(amount)),
+            _ => Err("Parse Error"),
+        }
+    }
 }
 
 struct ModDiv(HashMap<i64, i64>);
@@ -49,7 +67,7 @@ impl Operation {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Monkey {
     items: VecDeque<i64>,
     operation: Operation,
@@ -58,66 +76,52 @@ pub struct Monkey {
     if_false: usize,
 }
 
-pub fn get_monkeys() -> Vec<Monkey> {
-    // Todo: parse
-    vec![
-        Monkey {
-            items: VecDeque::from([98, 70, 75, 80, 84, 89, 55, 98]),
-            operation: Operation::Times(2),
-            divisible_by: 11,
-            if_true: 1,
-            if_false: 4,
-        },
-        Monkey {
-            items: VecDeque::from([59]),
-            operation: Operation::Square,
-            divisible_by: 19,
-            if_true: 7,
-            if_false: 3,
-        },
-        Monkey {
-            items: VecDeque::from([77, 95, 54, 65, 89]),
-            operation: Operation::Plus(6),
-            divisible_by: 7,
-            if_true: 0,
-            if_false: 5,
-        },
-        Monkey {
-            items: VecDeque::from([71, 64, 75]),
-            operation: Operation::Plus(2),
-            divisible_by: 17,
-            if_true: 6,
-            if_false: 2,
-        },
-        Monkey {
-            items: VecDeque::from([74, 55, 87, 98]),
-            operation: Operation::Times(11),
-            divisible_by: 3,
-            if_true: 1,
-            if_false: 7,
-        },
-        Monkey {
-            items: VecDeque::from([90, 98, 85, 52, 91, 60]),
-            operation: Operation::Plus(7),
-            divisible_by: 5,
-            if_true: 0,
-            if_false: 4,
-        },
-        Monkey {
-            items: VecDeque::from([99, 51]),
-            operation: Operation::Plus(1),
-            divisible_by: 13,
-            if_true: 5,
-            if_false: 2,
-        },
-        Monkey {
-            items: VecDeque::from([98, 94, 59, 76, 51, 65, 75]),
-            operation: Operation::Plus(5),
-            divisible_by: 2,
-            if_true: 3,
-            if_false: 6,
-        },
-    ]
+impl FromStr for Monkey {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut iter = s.lines().skip(1);
+        let items = iter
+            .next()
+            .ok_or("Parse error")?
+            .split_whitespace()
+            .skip(2)
+            .map(|x| x.trim().trim_end_matches(',').parse().unwrap())
+            .collect();
+        let operation = iter
+            .next()
+            .ok_or("Parse error")?
+            .trim()
+            .trim_start_matches("Operation: new = ")
+            .parse()?;
+        let divisible_by = iter
+            .next()
+            .and_then(|x| x.split_whitespace().last())
+            .and_then(|x| x.parse().ok())
+            .ok_or("Parse error")?;
+        let if_true = iter
+            .next()
+            .and_then(|x| x.split_whitespace().last())
+            .and_then(|x| x.parse().ok())
+            .ok_or("Parse error")?;
+        let if_false = iter
+            .next()
+            .and_then(|x| x.split_whitespace().last())
+            .and_then(|x| x.parse().ok())
+            .ok_or("Parse error")?;
+
+        Ok(Monkey {
+            items,
+            operation,
+            divisible_by,
+            if_true,
+            if_false,
+        })
+    }
+}
+
+pub fn parse(s: &str) -> Vec<Monkey> {
+    s.split("\n\n").filter_map(|s| s.parse().ok()).collect()
 }
 
 pub fn part1(mut monkeys: Vec<Monkey>) -> i64 {
@@ -175,6 +179,58 @@ pub fn part2(monkeys: Vec<Monkey>) -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_monkey() {
+        let have = "\
+Monkey 0:
+  Starting items: 98, 70, 75, 80, 84, 89, 55, 98
+  Operation: new = old * 2
+  Test: divisible by 11
+    If true: throw to monkey 1
+    If false: throw to monkey 4";
+        let want = Monkey {
+            items: VecDeque::from([98, 70, 75, 80, 84, 89, 55, 98]),
+            operation: Operation::Times(2),
+            divisible_by: 11,
+            if_true: 1,
+            if_false: 4,
+        };
+        assert_eq!(have.parse(), Ok(want));
+    }
+
+    #[test]
+    fn test_parse() {
+        let have = "\
+Monkey 0:
+  Starting items: 79, 98
+  Operation: new = old * 19
+  Test: divisible by 23
+    If true: throw to monkey 2
+    If false: throw to monkey 3
+
+Monkey 1:
+  Starting items: 54, 65, 75, 74
+  Operation: new = old + 6
+  Test: divisible by 19
+    If true: throw to monkey 2
+    If false: throw to monkey 0
+
+Monkey 2:
+  Starting items: 79, 60, 97
+  Operation: new = old * old
+  Test: divisible by 13
+    If true: throw to monkey 1
+    If false: throw to monkey 3
+
+Monkey 3:
+  Starting items: 74
+  Operation: new = old + 3
+  Test: divisible by 17
+    If true: throw to monkey 0
+    If false: throw to monkey 1";
+        assert_eq!(parse(have), get_test_monkeys());
+    }
 
     #[test]
     fn test_part1() {
