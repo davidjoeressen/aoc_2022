@@ -42,21 +42,18 @@ impl<T: Clone> Matrix<T> {
 }
 
 impl Matrix<i32> {
-    fn shortest_distance(&self, from: Coordinate, to: Coordinate) -> Option<i32> {
+    fn distance_map(&self, to: Coordinate) -> Matrix<Option<i32>> {
         let mut distances: Matrix<Option<i32>> = Matrix::new(self.height, self.width, None);
-        distances[from] = Some(0);
+        distances[to] = Some(0);
         let mut queue = BinaryHeap::new();
-        queue.push(Field(0, from));
+        queue.push(Field(0, to));
         while let Some(Field(_, coord)) = queue.pop() {
             let distance = distances[coord].unwrap();
-            if coord == to {
-                return Some(distance);
-            }
             let next_distance = distance + 1;
-            let possible_height = self[coord] + 1;
+            let possible_height = self[coord] - 1;
             let neighbors = self.get_neighbors(coord);
             for &neighbor in neighbors.iter() {
-                if self[neighbor] > possible_height {
+                if self[neighbor] < possible_height {
                     continue;
                 }
                 if let Some(n) = distances[neighbor] {
@@ -68,7 +65,7 @@ impl Matrix<i32> {
                 queue.push(Field(next_distance, neighbor));
             }
         }
-        distances[to]
+        distances
     }
 }
 
@@ -154,24 +151,27 @@ impl Ord for Field {
     }
 }
 
-pub fn part1(map: &HeightMap) -> i32 {
-    map.map.shortest_distance(map.start, map.goal).unwrap()
+pub fn generate_distance_map(map: &HeightMap) -> Matrix<Option<i32>> {
+    map.map.distance_map(map.goal)
 }
 
-pub fn part2(map: &HeightMap) -> i32 {
-    let mut starts = Vec::new();
+pub fn part1(map: &HeightMap, distance_map: &Matrix<Option<i32>>) -> i32 {
+    distance_map[map.start].unwrap()
+}
+
+pub fn part2(map: &HeightMap, distance_map: &Matrix<Option<i32>>) -> i32 {
+    let mut smallest_distance = i32::max_value();
     for x in 0..map.map.height {
         for y in 0..map.map.width {
-            if map.map[(x, y)] == 0 {
-                starts.push((x, y));
+            if map.map[(x, y)] != 0 {
+                continue;
+            }
+            if let Some(n) = distance_map[(x, y)] {
+                smallest_distance = smallest_distance.min(n);
             }
         }
     }
-    starts
-        .iter()
-        .filter_map(|&x| map.map.shortest_distance(x, map.goal))
-        .min()
-        .unwrap()
+    smallest_distance
 }
 
 #[cfg(test)]
@@ -208,7 +208,8 @@ mod tests {
             acctuvwj\n\
             abdefghi";
         let map = have.parse().unwrap();
-        assert_eq!(part1(&map), 31);
-        assert_eq!(part2(&map), 29);
+        let distance_map = generate_distance_map(&map);
+        assert_eq!(part1(&map, &distance_map), 31);
+        assert_eq!(part2(&map, &distance_map), 29);
     }
 }
