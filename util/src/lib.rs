@@ -2,9 +2,7 @@ use std::env;
 use std::fs;
 use std::io;
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+pub mod vec2d;
 
 pub fn execute<F>(f: F)
 where
